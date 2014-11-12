@@ -12,13 +12,13 @@ class Analizer
 	
 	@doc
 
-	def initialize( httpUrl , isProfile )
+	def initialize( httpUrl )
 		@url = httpUrl
 		
-		if isProfile == true
-			@profile = true
-		else
+		if httpUrl.include? "http://instagram.com/p"
 			@profile = false
+		else
+			@profile = true
 		end
 
 		self.parseDocument
@@ -27,6 +27,10 @@ class Analizer
 	def parseDocument
 		browser = Watir::Browser.new("chrome")
 		browser.goto @url
+
+		puts "Scorri fino in fondo l'elenco tutte le foto"
+		gets
+		# TODO TRY WORKAROUND
 		@doc = Hpricot(browser.body.html)
 		browser.close
 	end		
@@ -49,6 +53,6 @@ class Analizer
 end
 
 
-a = Analizer.new("http://instagram.com/Salvatoree0123", true)
+a = Analizer.new("http://instagram.com/Salvatoree0123")
 a.profileImage
 a.getAllPhotoLinks
