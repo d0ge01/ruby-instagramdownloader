@@ -15,15 +15,28 @@ DEBUG = true
 
 if ARGV.size < 1
 	puts "Use: #{$0} username"
+	exit
 end
 
+
 prefix  = "storage/"
-profile = "http://instagram.com/" + ARGV.shift
-name = profile.split('/').last
+
+begin
+	File.open prefix + "output.xml", "w" do |f|
+		f.write("<OUTPUT></OUTPUT>")
+	end
+rescue
+	puts "il prefisso " + prefix + " non è valido per piacere controlla esista"
+	exit
+end
+
+name = ARGV.shift
+profile = "http://instagram.com/" + name
+
 
 # Creo la directory
 Dir.mkdir( prefix + name ) rescue "Cartella già esistente"
-puts "[!] Creo la cartella" if DEBUG
+puts "[!] Creo la cartella #{name}" if DEBUG
 
 # Apro il browser per poter elaborare il JS
 browser = Watir::Browser.new("chrome")
@@ -45,6 +58,8 @@ board = doc.search("//ul[@class='photo-feed']")
 	array_link << x['href']
 end
 
+array_link.uniq!
+
 array_link.each do |x|
 	browser.goto x
 	doc = Hpricot(browser.body.html)
@@ -52,12 +67,13 @@ array_link.each do |x|
 	foto = (image/"div").first
 	foto = (foto['src']).to_s
 	puts "[!] Download #{foto}" if DEBUG
-	resp = open(foto)
-	
-	if not(File.exist? prefix + name + "/" + foto.split('/').last + "")		
+	if not(File.exist? prefix + name + "/" + foto.split('/').last)		
+		resp = open(foto)
 		File.open prefix + name + "/" + foto.split('/').last + "" , "w" do |f|
 			f.write(resp.read)
 		end
+	else
+		puts "[!] Evitato poiché foto già presente.." if DEBUG
 	end
 end
 
